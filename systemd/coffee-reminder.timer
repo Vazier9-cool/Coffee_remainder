@@ -1,0 +1,10 @@
+[Unit]
+Description=Coffee Reminder timer
+
+[Timer]
+OnCalendar=hourly
+Persistent=true
+Unit=coffee-reminder.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,9 @@
+[Unit]
+Description=Coffee Reminder
+
+[Service]
+Type=oneshot
+ExecStart=/home/personal_work/Coffee_remainder/coffee_reminder.sh
+
+[Install]
+WantedBy=default.target
