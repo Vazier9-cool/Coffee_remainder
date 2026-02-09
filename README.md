@@ -19,14 +19,16 @@ Install
   - Install user service and enable timer, plus DKMS module: `./setup.sh --with-kmod`
   - Install user service and enable timer only: `./setup.sh`
   - Install user service without enabling/starting the timer: `./setup.sh --no-enable`
+  - Install and set custom time: `./setup.sh --time=HH:MM` (24h)
+    - Example: `./setup.sh --time=08:30`
 
 - DKMS install only:
   - `sudo ./install-kmod.sh`
   - Registers sources under `/usr/src/coffee_reminder-1.0`, runs `dkms add/build/install`, and configures autoload via `/etc/modules-load.d/coffee_reminder.conf`.
 
 Configuration
-- Default reminder time is defined by `OnCalendar` in the user timer at `~/.config/systemd/user/coffee-reminder.timer` (initially copied from `systemd/coffee-reminder.timer`).
-- To change the time:
+- Default reminder time comes from `systemd/coffee-reminder.timer` (OnCalendar).
+- To change time after setup:
   - Edit `~/.config/systemd/user/coffee-reminder.timer` and update `OnCalendar`.
   - Apply changes: `systemctl --user daemon-reload` and `systemctl --user restart coffee-reminder.timer`.
 - Custom sound:
@@ -55,10 +57,9 @@ Notes
 - `setup.sh`:
   - Copies units from `systemd/` to `~/.config/systemd/user/`.
   - Marks `coffee_reminder.sh` executable.
+  - Can set custom time via `--time=HH:MM` by updating `OnCalendar` in your user timer.
   - Reloads user systemd and enables/starts the timer unless `--no-enable` is used.
   - With `--with-kmod`, invokes kernel module install (requiring sudo/root).
-- DKMS will rebuild the module for new kernels automatically.
-- The user service continues to work even if the kernel module is not present.
 
 License
 - GPLv2. See COPYING for the full text.

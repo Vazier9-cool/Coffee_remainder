@@ -19,7 +19,7 @@ static struct kobject *coffee_kobj;
 
 // Store schedule in HH:MM comma-separated, e.g., "09:00,12:00,15:00"
 #define MAX_SCHED_LEN 256
-static char schedule[MAX_SCHED_LEN] = "09:00,12:00,15:00";
+static char sched_str[MAX_SCHED_LEN] = "09:00,12:00,15:00"; // renamed from 'schedule' to avoid clash with kernel symbol
 static int beep_ms = 1000; // duration of beep in ms
 static int enabled = 1;
 
@@ -28,17 +28,17 @@ static bool time_matches(const struct timespec64 *ts)
     struct tm tm;
     time64_to_tm(ts->tv_sec, 0, &tm);
     // Build current HH:MM
-    char current[6];
-    snprintf(current, sizeof(current), "%02d:%02d", tm.tm_hour, tm.tm_min);
+    char cur_time[6]; // renamed from 'current' to avoid macro clash
+    snprintf(cur_time, sizeof(cur_time), "%02d:%02d", tm.tm_hour, tm.tm_min);
 
     // Linear scan schedule string for match at minute precision
-    const char *p = schedule;
+    const char *p = sched_str;
     while (*p) {
         // skip separators
         while (*p == ' ' || *p == ',') p++;
         if (!*p) break;
         // compare 5 chars HH:MM
-        if (strlen(p) >= 5 && strncmp(p, current, 5) == 0)
+        if (strlen(p) >= 5 && strncmp(p, cur_time, 5) == 0)
             return true;
         // advance to next comma
         while (*p && *p != ',') p++;
@@ -85,17 +85,17 @@ static int coffee_worker(void *data)
 // Sysfs attributes
 static ssize_t schedule_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
 {
-    return scnprintf(buf, PAGE_SIZE, "%s\n", schedule);
+    return scnprintf(buf, PAGE_SIZE, "%s\n", sched_str);
 }
 
 static ssize_t schedule_store(struct kobject *kobj, struct kobj_attribute *attr, const char *buf, size_t count)
 {
     size_t n = min(count, (size_t)(MAX_SCHED_LEN - 1));
-    memcpy(schedule, buf, n);
+    memcpy(sched_str, buf, n);
     // strip trailing newline
-    if (n > 0 && schedule[n-1] == '\n') n--;
-    schedule[n] = '\0';
-    pr_info("coffee_reminder: schedule set to '%s'\n", schedule);
+    if (n > 0 && sched_str[n-1] == '\n') n--;
+    sched_str[n] = '\0';
+    pr_info("coffee_reminder: schedule set to '%s'\n", sched_str);
     return count;
 }
 
