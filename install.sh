@@ -9,7 +9,7 @@ TIMER_NAME="coffee-reminder.timer"
 
 mkdir -p "$USER_SYSTEMD_DIR"
 
-# Copy units
+# Copy units (force overwrite)
 cp -f "$REPO_DIR/systemd/$SERVICE_NAME" "$USER_SYSTEMD_DIR/$SERVICE_NAME"
 cp -f "$REPO_DIR/systemd/$TIMER_NAME" "$USER_SYSTEMD_DIR/$TIMER_NAME"
 
@@ -19,6 +19,7 @@ chmod +x "$REPO_DIR/coffee_reminder.sh"
 # Reload and enable timer
 systemctl --user daemon-reload
 systemctl --user enable --now "$TIMER_NAME"
+systemctl --user restart "$TIMER_NAME"
 
 echo "Installed. Check status with: systemctl --user list-timers | grep coffee-reminder"
-echo "Logs: journalctl --user -u coffee-reminder.service --since today --no-pager"
+echo "Unit content:"; echo; sed -n '1,200p' "$USER_SYSTEMD_DIR/$TIMER_NAME"

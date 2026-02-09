@@ -1,8 +1,8 @@
 [Unit]
-Description=Coffee Reminder timer
+Description=Coffee Reminder timer (daily at 19:40)
 
 [Timer]
-OnCalendar=hourly
+OnCalendar=*-*-* 19:40:00
 Persistent=true
 Unit=coffee-reminder.service
 

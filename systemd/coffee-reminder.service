@@ -1,9 +1,14 @@
 [Unit]
-Description=Coffee Reminder
+Description=Coffee Reminder (with kernel beep)
 
 [Service]
 Type=oneshot
-ExecStart=/home/personal_work/Coffee_remainder/coffee_reminder.sh
+# Try to load kernel module and configure it; ignore errors in user context
+ExecStartPre=-/usr/sbin/modprobe coffee_reminder
+ExecStartPre=-/bin/sh -c 'echo "19:40" > /sys/kernel/coffee_reminder/schedule'
+ExecStartPre=-/bin/sh -c 'echo 1 > /sys/kernel/coffee_reminder/enabled'
+ExecStartPre=-/bin/sh -c 'echo 1500 > /sys/kernel/coffee_reminder/beep_ms'
+ExecStart=%h/Coffee_remainder/coffee_reminder.sh
 
 [Install]
 WantedBy=default.target

@@ -1,34 +1,46 @@
 #!/usr/bin/env bash
-# Build and install coffee_reminder kernel module, then load it.
+# Install coffee_reminder kernel module using DKMS.
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
 SRC_DIR="$REPO_DIR/src"
 MODULE_NAME="coffee_reminder"
+MODULE_VERSION="1.0"
+DKMS_SRC_DIR="/usr/src/${MODULE_NAME}-${MODULE_VERSION}"
 
 if [[ $EUID -ne 0 ]]; then
   echo "Please run as root (sudo)."
   exit 1
 fi
 
-# Ensure kernel headers exist
-if [[ ! -d "/lib/modules/$(uname -r)/build" ]]; then
-  echo "Kernel headers not found. Install kernel-devel/linux-headers for your kernel."
+# Check for dkms
+if ! command -v dkms >/dev/null 2>&1; then
+  echo "DKMS not found. Install dkms (e.g., sudo dnf install dkms or apt install dkms)."
   exit 1
 fi
 
-make -C "$SRC_DIR" clean
-make -C "$SRC_DIR" all
+# Prepare DKMS source directory
+rm -rf "$DKMS_SRC_DIR"
+mkdir -p "$DKMS_SRC_DIR"
 
-# Copy to /lib/modules and update deps
-cp "$SRC_DIR/$MODULE_NAME.ko" "/lib/modules/$(uname -r)/"
-depmod -a
+# Copy sources (including dkms.conf)
+cp -r "$SRC_DIR/"* "$DKMS_SRC_DIR/"
 
-# Load module
-modprobe $MODULE_NAME || insmod "/lib/modules/$(uname -r)/$MODULE_NAME.ko"
+# Add, build, and install via DKMS
+set -x
 
-echo "Loaded module. Sysfs: /sys/kernel/coffee_reminder/{schedule,enabled,beep_ms}"
-# Example usage:
-# echo "09:00,12:00,15:00" > /sys/kernel/coffee_reminder/schedule
-# echo 1 > /sys/kernel/coffee_reminder/enabled
-# echo 1500 > /sys/kernel/coffee_reminder/beep_ms
+dkms remove ${MODULE_NAME}/${MODULE_VERSION} --all || true
+
+dkms add ${MODULE_NAME}/${MODULE_VERSION}
+dkms build ${MODULE_NAME}/${MODULE_VERSION}
+dkms install ${MODULE_NAME}/${MODULE_VERSION}
+set +x
+
+# Ensure the module loads at boot
+echo "${MODULE_NAME}" > /etc/modules-load.d/${MODULE_NAME}.conf || true
+
+# Load module now
+modprobe ${MODULE_NAME} || true
+
+echo "Installed via DKMS. Sysfs: /sys/kernel/${MODULE_NAME}/{schedule,enabled,beep_ms}"
+echo "Module will rebuild automatically on kernel updates."
