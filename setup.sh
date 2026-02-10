@@ -4,17 +4,14 @@ set -euo pipefail
 
 usage() {
   echo "Usage: $0 [--with-kmod] [--no-enable] [--time HH:MM]"
-  echo "  --with-kmod   Install kernel module via DKMS (requires sudo)"
   echo "  --no-enable   Do not enable/start the timer, just install units"
   echo "  --time HH:MM  Set daily reminder time (24h format)"
 }
 
-WITH_KMOD=0
 ENABLE_TIMER=1
 USER_TIME=""
 for arg in "$@"; do
   case "$arg" in
-    --with-kmod) WITH_KMOD=1 ;;
     --no-enable) ENABLE_TIMER=0 ;;
     --time)
       echo "Error: --time requires a value (HH:MM)."; usage; exit 1 ;;
@@ -32,15 +29,6 @@ REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
 USER_SYSTEMD_DIR="$HOME/.config/systemd/user"
 SERVICE_NAME="coffee-reminder.service"
 TIMER_NAME="coffee-reminder.timer"
-
-if [[ "$WITH_KMOD" -eq 1 ]]; then
-  if [[ $EUID -ne 0 ]]; then
-    echo "Installing kernel module via DKMS requires sudo/root. Re-running with sudo..."
-    exec sudo "$REPO_DIR/install-kmod.sh"
-  else
-    "$REPO_DIR/install-kmod.sh"
-  fi
-fi
 
 mkdir -p "$USER_SYSTEMD_DIR"
 cp -f "$REPO_DIR/systemd/$SERVICE_NAME" "$USER_SYSTEMD_DIR/$SERVICE_NAME"
