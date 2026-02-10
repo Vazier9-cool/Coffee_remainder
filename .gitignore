@@ -1,0 +1,13 @@
+# Kernel build artifacts
+src/*.o
+src/*.mod
+src/*.mod.c
+src/*.symvers
+src/*.order
+src/*.ko
+src/*.cmd
+src/*.d
+src/build/
+
+# General
+*.log
